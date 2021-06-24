@@ -1,6 +1,9 @@
 package net.pl3x.map.plugin.task.render;
 
 import com.mojang.datafixers.util.Either;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +41,6 @@ import net.pl3x.map.plugin.util.FileUtil;
 import net.pl3x.map.plugin.util.Numbers;
 import org.apache.logging.log4j.LogManager;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -70,7 +72,11 @@ public abstract class AbstractRender implements Runnable {
         this.mapWorld = mapWorld;
         this.executor = executor;
         this.world = mapWorld.bukkit();
-        this.nmsWorld = ((CraftWorld) this.world).getHandle();
+        try {
+            this.nmsWorld = (ServerLevel) world.getClass().getMethod("getHandle").invoke(world);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         this.worldTilesDir = FileUtil.getWorldFolder(world);
         this.biomeColors = this.mapWorld.config().MAP_BIOMES
                 ? ThreadLocal.withInitial(() -> new BiomeColors(mapWorld))

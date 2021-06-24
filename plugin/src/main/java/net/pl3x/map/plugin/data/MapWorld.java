@@ -7,6 +7,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -39,7 +40,6 @@ import net.pl3x.map.plugin.task.render.BackgroundRender;
 import net.pl3x.map.plugin.task.render.FullRender;
 import net.pl3x.map.plugin.util.Colors;
 import net.pl3x.map.plugin.visibilitylimit.VisibilityLimit;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public final class MapWorld implements net.pl3x.map.api.MapWorld {
@@ -64,7 +64,11 @@ public final class MapWorld implements net.pl3x.map.api.MapWorld {
 
     private MapWorld(final org.bukkit.@NonNull World world) {
         this.bukkitWorld = world;
-        this.world = ((CraftWorld) world).getHandle();
+        try {
+            this.world = (ServerLevel) world.getClass().getMethod("getHandle").invoke(world);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
 
         this.blockColors = new BlockColors(this);
 

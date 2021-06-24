@@ -2,10 +2,10 @@ package net.pl3x.map.plugin.configuration;
 
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +16,11 @@ abstract class AbstractWorldConfig {
     final AbstractConfig config;
 
     AbstractWorldConfig(World world, AbstractConfig parent) {
-        this.world = ((CraftWorld) world).getHandle();
+        try {
+            this.world = (ServerLevel) world.getClass().getMethod("getHandle").invoke(world);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         this.worldName = world.getName();
         this.config = parent;
     }
